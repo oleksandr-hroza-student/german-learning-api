@@ -1,0 +1,4 @@
+.venv/
+*pyc
+.env
+firebase-service-account.json
