@@ -1,5 +1,5 @@
 from flask import Flask, jsonify
-from app.config.firebase import db
+from app.config.firebase import get_db
 
 app = Flask(__name__)
 
@@ -8,7 +8,7 @@ app = Flask(__name__)
 def test_firebase():
 
     db.collection("test").add({
-        "message": "Hello Firebase3"
+        "message": "Hello Firebase4"
     })
 
     docs = db.collection("test").stream()

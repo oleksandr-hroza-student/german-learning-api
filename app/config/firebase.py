@@ -4,21 +4,9 @@ from pathlib import Path
 from firebase_admin import credentials, firestore
 import os
 
-from dotenv import load_dotenv
-
-#See if can move to run.py for better efficiancy - 04/08 CHECK
-load_dotenv()  # Load environment variables from .env file
-
-#MOVE TO run.py when set up! 04/08/26 CHECK
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s %(levelname)s %(name)s: %(message)s"
-)
-
 
 #__name__ - gives the name of the current module, app.config.firebase in this case, this way we make a separate logger for each module
 logger = logging.getLogger(__name__)
-print(__name__)
 
 def initialize_firebase():
 
@@ -49,12 +37,12 @@ def initialize_firebase():
         logger.info("Firebase initialised successfully")
 
 
-#init firebase itself - the method we have just written
-initialize_firebase()
 
 #Created a connection to the database.
-#Now, if we want to access the db from anywherein the app, we type: from app.config.firebase import db
-db = firestore.client()
+#Created a separate function, using which we can get connection to the database
+def get_db():
+    db = firestore.client()
+    return db
 
 
 
