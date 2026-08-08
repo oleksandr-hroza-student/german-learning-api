@@ -1,5 +1,6 @@
 #Confirms the connection with firestore and the ability to read from it & write into it.
 import logging
+import time
 from flask import Blueprint, jsonify
 from app.config.firebase import get_db
 
@@ -18,6 +19,7 @@ def firestore_test():
         {
             "status": "connected",
             "message": "Hello, Firebase! (from /firestore_test)",
+            "timestamp": time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
         }
     )
 
