@@ -6,11 +6,13 @@ import logging
 #2.related third party imports
 from flask import Flask
 from dotenv import load_dotenv
+from flask_cors import CORS
 
 #3.Local app imports.
 from app.config.firebase import initialize_firebase
 from app.api.health_flask import health_bp
 from app.api.health_firestore import health_firestore_bp
+from app.api.protected import protected_bp
 
 
 
@@ -29,6 +31,23 @@ def create_app():
     # Create the Flask application
     app = Flask(__name__)
 
+    #CHECK BEFORE DEPLOYMENT
+    #For development purpuses only
+    """
+    Browser: can localhost:63342 access API?
+    Flask: YES SIRRR
+    Browser - allows request.
+    """
+    CORS(
+        app,
+        resources={
+            #r"..." - python raw string,
+            r"/api/*":{
+                "origins": "http://localhost:63342"
+            }
+        }
+    )
+
     #Configure application-later (secret keys, et)
 
 
@@ -40,5 +59,7 @@ def create_app():
     #Register blueprints (health check, firestore test) later - authentication
     app.register_blueprint(health_bp, url_prefix="/api")
     app.register_blueprint(health_firestore_bp, url_prefix="/api")
+    app.register_blueprint(protected_bp, url_prefix="/api")
+
 
     return app

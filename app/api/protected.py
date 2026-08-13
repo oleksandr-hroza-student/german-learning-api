@@ -8,12 +8,36 @@ protected_bp = Blueprint("protected", __name__)
 @protected_bp.route("/protected")
 def protected():
 
-    auth_header = request.headers.get("Authorisation", "")
+    #get Bearer wsefiojwnwoekcm...
+    auth_header = request.headers.get("Authorization", "")
 
-    if not auth_header.strtwith("Bearer "):
+    #if the format is invalid (No "Bearer"), return an error
+
+    if not auth_header.startswith("Bearer "):
         return jsonify({
             "error": "Missing or invalid Authorisation header"
         }), 401
+    print("Got valid token")
 
-
+    #Extracts just the token part
+    #id_token = auth_header.split("Bearer ", 1) gives us ["", "wefiwneofwefbi..."]
+    #[1].strip() - gives us just the "weisehqnowef..." with no wxtra spaces.
     id_token = auth_header.split("Bearer ", 1)[1].strip()
+    try:
+        decoded_token = auth.verify_id_token(id_token)
+    except Exception as error:
+        return jsonify({
+            "error": "Invalid token",
+            "details": str(error)
+        }), 401
+
+    uid = decoded_token.get("uid")
+    print("User_id", uid)
+
+    print("authentication succesful")
+    return jsonify({
+        "message": "Authenticated succesfully",
+        "uid": uid
+    }), 200
+
+
