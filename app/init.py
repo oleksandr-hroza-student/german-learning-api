@@ -13,6 +13,7 @@ from app.config.firebase import initialize_firebase
 from app.api.health_flask import health_bp
 from app.api.health_firestore import health_firestore_bp
 from app.api.protected import protected_bp
+from app.api.me import me_bp
 
 
 
@@ -60,6 +61,6 @@ def create_app():
     app.register_blueprint(health_bp, url_prefix="/api")
     app.register_blueprint(health_firestore_bp, url_prefix="/api")
     app.register_blueprint(protected_bp, url_prefix="/api")
-
+    app.register_blueprint(me_bp, url_prefix="/api")
 
     return app

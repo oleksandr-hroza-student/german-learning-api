@@ -31,6 +31,9 @@ def protected():
             "details": str(error)
         }), 401
 
+    #print(decoded_token)
+    #'iss': 'https://securetoken.google.com/german-learning-api', 'aud': 'german-learning-api', 'auth_time': ..., 'user_id': '...', 'sub': '...', 'iat': ..., 'exp': ..., 'email': '...', 'email_verified': T/False, 'firebase': {'identities': {'email': ['...']}, 'sign_in_provider': 'password'}, 'uid': '..'}
+    #Use this pattern to get the user's ID
     uid = decoded_token.get("uid")
     print("User_id", uid)
 
