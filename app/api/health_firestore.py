@@ -38,7 +38,7 @@ def firestore_test():
         "success": True,
         "message": "Firestore connection successful!",
         "data": doc.to_dict()
-    })
+    }), 200
 
 
 

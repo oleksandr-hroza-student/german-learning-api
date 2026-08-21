@@ -23,7 +23,6 @@ Blueprints:
  app.register_blueprint(health_db, url_prefix="/api")
  (all routes in the blueprint would start with "/api")
  
- 
 """
 
 

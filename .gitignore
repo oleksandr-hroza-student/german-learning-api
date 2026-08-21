@@ -2,3 +2,4 @@
 *pyc
 .env
 firebase-service-account.json
+.env.test
