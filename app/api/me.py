@@ -61,7 +61,9 @@ def create_me():
 @me_bp.route("/me", methods = ["GET"])
 @auth_required
 def get_me():
-    user_id = g.uid  # Get the user ID from the global context set by the decorator
+    user_id = g.uid
+    print(user_id)
+    # Get the user ID from the global context set by the decorator
     #returns firestore db -> points to collection "users" -> points to the specific user document, result stored in user_ref
     #user_ref - basically just a reference, does not contain document data
     user_ref = get_db().collection("users").document(user_id)
@@ -70,6 +72,7 @@ def get_me():
     user_doc = user_ref.get()
 
     if not user_doc.exists:
+        print("User profile not found")
         return jsonify({
             "error": "User profile not found"
         }), 404

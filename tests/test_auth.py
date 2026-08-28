@@ -7,16 +7,15 @@
 """
 from google.api_core.gapic_v1 import requests
 
+
 import os
 import requests
 
-from dotenv import load_dotenv
-
-load_dotenv(".env.test")
+#helper method when I need to simulate a succesfull signin
+def fake_verify_id_token(token):
+    return {"uid": "test_user_hehe"}
 
 def test_auth_required_accepts_valid_token(client, monkeypatch):
-    def fake_verify_id_token(token):
-        return {"uid": "test_user_hehe"}
 
     monkeypatch.setattr(
         "app.auth.decorators.auth.verify_id_token",
@@ -31,7 +30,7 @@ def test_auth_required_accepts_valid_token(client, monkeypatch):
     assert response.status_code == 200
     assert response.get_json() == {"message": "Authenticated succesfully",
     "uid": "test_user_hehe"}
-    print(response.get_json())
+    #print(response.get_json())
 
 def get_token(email, password, api_key):
     url = (
@@ -50,18 +49,16 @@ def get_token(email, password, api_key):
 
     return response.json()["idToken"]
 
+def test_auth_required_real_token(client, user_credentials_for_test):
+    creds = user_credentials_for_test
 
-
-
-
-"""
-def test_auth_required_real_token(client):
-    email = os.getenv("FIREBASE_TEST_EMAIL")
-    
-
-    token = get_token()
+    token = get_token(creds["email"], creds["password"], creds["api_key"])
     response = client.get(
         "/api/protected",
-        headers={"Authorization": token}
+        headers={"Authorization": f"Bearer {token}"}
     )
-"""
+
+    assert response.status_code == 200
+
+
+
