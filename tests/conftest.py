@@ -3,6 +3,8 @@
 import os
 import pytest
 
+from unittest.mock import MagicMock
+
 from app import create_app
 
 from dotenv import load_dotenv
@@ -46,3 +48,14 @@ def mock_valid_token(monkeypatch):
     )
 
     return user_id
+
+@pytest.fixture
+def fake_db(monkeypatch):
+    db = MagicMock()
+
+    monkeypatch.setattr(
+        "app.api.me.get_db",
+        lambda: db
+    )
+
+    return db

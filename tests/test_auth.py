@@ -10,6 +10,7 @@ from google.api_core.gapic_v1 import requests
 
 import os
 import requests
+import pytest
 
 #helper method when I need to simulate a succesfull signin
 def fake_verify_id_token(token):
@@ -49,6 +50,7 @@ def get_token(email, password, api_key):
 
     return response.json()["idToken"]
 
+@pytest.mark.integration
 def test_auth_required_real_token(client, user_credentials_for_test):
     creds = user_credentials_for_test
 

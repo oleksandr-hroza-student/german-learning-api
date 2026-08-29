@@ -1,6 +1,10 @@
 from unittest.mock import MagicMock
 #from test_auth import fake_verify_id_token
-def test_get_me_existing_profile(client, monkeypatch, mock_valid_token):
+
+#GET TESTS:
+
+#valid token + profile exists
+def test_get_me_existing_profile(client, mock_valid_token, fake_db):
     #Replaces the actual function (from firebase_admin import auth; auth.veryfi_id_token)
     #with a fake one, that just returns a user id in this case
 
@@ -20,13 +24,15 @@ def test_get_me_existing_profile(client, monkeypatch, mock_valid_token):
     }
 
 
-    fake_db = MagicMock()
+    #fake_db = MagicMock()
     fake_db.collection.return_value.document.return_value.get.return_value = fake_snapshot
-
+    """
+    Not needed, as made a fake_db fixture
     monkeypatch.setattr(
         "app.api.me.get_db",
         lambda: fake_db
     )
+    """
     """
     fake_db.collection() - returns a fake collection
     fake_db.collection.document() - returns a fake document
@@ -42,10 +48,10 @@ def test_get_me_existing_profile(client, monkeypatch, mock_valid_token):
         "streak": 5
     }
 
-def test_get_me_not_existing_profile(client, monkeypatch, mock_valid_token):
+#valid token + profile missing
+def test_get_me_not_existing_profile(client, mock_valid_token, fake_db):
     #Replaces the actual function (from firebase_admin import auth; auth.veryfi_id_token)
     #with a fake one, that just returns a user id in this case
-    expected_uid = mock_valid_token
 
 
     """
@@ -60,13 +66,14 @@ def test_get_me_not_existing_profile(client, monkeypatch, mock_valid_token):
 
 
 
-    fake_db = MagicMock()
+    #fake_db = MagicMock()
     fake_db.collection.return_value.document.return_value.get.return_value = fake_snapshot
-
+    """
     monkeypatch.setattr(
         "app.api.me.get_db",
         lambda: fake_db
     )
+    """
     """
     fake_db.collection() - returns a fake collection
     fake_db.collection.document() - returns a fake document
@@ -81,6 +88,7 @@ def test_get_me_not_existing_profile(client, monkeypatch, mock_valid_token):
         "error": "User profile not found"
     }
 
+#no token
 def test_get_me_without_token(client):
     response = client.get("/api/me")
 
@@ -90,6 +98,7 @@ def test_get_me_without_token(client):
     }
 
 
+#invalid token
 def test_get_me_invalid_token(client, monkeypatch):
     def fake_invalid_token(token):
         raise Exception("Token is invalid")
@@ -109,7 +118,7 @@ def test_get_me_invalid_token(client, monkeypatch):
 
 
 
-def test_get_me_uses_authenticated_user_uid(client, monkeypatch, mock_valid_token):
+def test_get_me_uses_authenticated_user_uid(client, mock_valid_token, fake_db):
     expected_uid = mock_valid_token
 
     fake_snapshot = MagicMock()
@@ -119,14 +128,16 @@ def test_get_me_uses_authenticated_user_uid(client, monkeypatch, mock_valid_toke
         "streak": 5
     }
 
-    fake_db = MagicMock()
+    #fake_db = MagicMock()
     fake_db.collection.return_value.document.return_value.get.return_value = fake_snapshot
 
+    """
+    Not needed, as we have done this bit in the fixture already
     monkeypatch.setattr(
         "app.api.me.get_db",
         lambda: fake_db
     )
-
+    """
     response = client.get(
         "/api/me",
         headers={"Authorization": "Bearer fake_token"}
@@ -139,3 +150,175 @@ def test_get_me_uses_authenticated_user_uid(client, monkeypatch, mock_valid_toke
     fake_db.collection.return_value.document.assert_called_once_with(
         expected_uid
     )
+
+
+#POST TESTS:
+
+#Valid token + profile does not exist
+
+
+def test_post_me_creates_new_profile(client, mock_valid_token, fake_db):
+    fake_snapshot = MagicMock()
+    fake_snapshot.exists = False
+
+    fake_db.collection.return_value.document.return_value.get.return_value = fake_snapshot
+
+    response = client.post(
+        "/api/me",
+        headers={
+            "Authorization": "Bearer fake_token"
+        },
+        json={
+            "username": "test_username"
+        }
+    )
+
+    assert response.status_code == 201
+    assert response.get_json() == {
+        "message": "User profile created"
+    }
+
+#Check that when creating the profile it actually wrote the correct data:
+#(Instead of "streak" : 67, "username" : 676767)
+
+def test_post_me_writes_correct_profile_data(client, mock_valid_token, fake_db):
+    fake_snapshot = MagicMock()
+    fake_snapshot.exists = False
+
+    fake_document = fake_db.collection.return_value.document.return_value
+    fake_document.get.return_value = fake_snapshot
+
+    response = client.post(
+        "/api/me",
+        headers={
+            "Authorization": "Bearer fake_token"
+        },
+        json={
+            "username": "alex"
+        }
+    )
+
+    assert response.status_code == 201
+
+    fake_document.set.assert_called_once_with({
+        "streak": 0,
+        "username": "alex"
+    })
+
+#Test user profile already exists:
+
+
+def test_post_me_existing_profile_returns_409(client, mock_valid_token, fake_db):
+    fake_snapshot = MagicMock()
+    fake_snapshot.exists = True
+
+    fake_db.collection.return_value.document.return_value.get.return_value = fake_snapshot
+
+    response = client.post(
+        "/api/me",
+        headers={
+            "Authorization": "Bearer fake_token"
+        },
+        json={
+            "username": "test_username"
+        }
+    )
+
+    assert response.status_code == 409
+
+    assert response.get_json() == {
+        "error": "User profile already exists"
+    }
+
+
+#the function does not overrite the existing profile:
+
+def test_post_me_existing_profile_does_not_overwrite_profile(client, mock_valid_token, fake_db):
+    fake_snapshot = MagicMock()
+    fake_snapshot.exists = True
+
+    fake_document = fake_db.collection.return_value.document.return_value
+    fake_document.get.return_value = fake_snapshot
+
+    response = client.post(
+        "/api/me",
+        headers={
+            "Authorization": "Bearer fake_token"
+        },
+        json={
+            "username": "hacker_username"
+        }
+    )
+
+    assert response.status_code == 409
+
+    fake_document.set.assert_not_called()
+
+#Try post with no token:
+
+def test_post_me_without_token_returns_401(client):
+    response = client.post(
+        "/api/me",
+        json={
+            "username": "alex"
+        }
+    )
+
+    assert response.status_code == 401
+
+    assert response.get_json() == {
+        "error": "Missing or invalid Authorisation header"
+    }
+
+
+#Try invalid token:
+
+def test_post_me_invalid_token_returns_401(client, monkeypatch):
+    def fake_invalid_token(token):
+        raise Exception("Invalid token")
+
+    monkeypatch.setattr(
+        "app.auth.decorators.auth.verify_id_token",
+        fake_invalid_token
+    )
+
+    response = client.post(
+        "/api/me",
+        headers={
+            "Authorization": "Bearer bad_token"
+        },
+        json={
+            "username": "alex"
+        }
+    )
+
+    assert response.status_code == 401
+
+    assert response.get_json()["error"] == "Invalid token"
+
+
+#Test that post uses the default value in case no username provided:
+
+def test_post_me_empty_username_uses_default(client, mock_valid_token, fake_db):
+    fake_snapshot = MagicMock()
+    fake_snapshot.exists = False
+
+    fake_document = fake_db.collection.return_value.document.return_value
+    fake_document.get.return_value = fake_snapshot
+
+    response = client.post(
+        "/api/me",
+        headers={
+            "Authorization": "Bearer fake_token"
+        },
+        json={
+            "username": ""
+        }
+    )
+
+    assert response.status_code == 201
+
+    fake_document.set.assert_called_once_with({
+        "streak": 0,
+        "username": "temp_username"
+    })
