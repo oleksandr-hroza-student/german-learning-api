@@ -12,9 +12,7 @@ load_dotenv(".env.test")
 
 @pytest.fixture
 def app():
-    app = create_app()
-    app.config["TESTING"] = True
-    return app
+    return create_app(testing=True)
 
 @pytest.fixture
 def client(app):

@@ -19,7 +19,7 @@ from app.api.me import me_bp
 
 
 
-def create_app():
+def create_app(testing = False):
     #Configure logger once and for everything.
     logging.basicConfig(
         level=logging.INFO,
@@ -31,6 +31,8 @@ def create_app():
 
     # Create the Flask application
     app = Flask(__name__)
+
+    app.config["TESTING"] = testing
 
     #CHECK BEFORE DEPLOYMENT
     #For development purpuses only
@@ -54,7 +56,8 @@ def create_app():
 
     #Initilise services (only firebase for now, later we will add more)
     """Later, as the amount of services grows, it might make sence to create a separate module 'initilize_services()' and call it here"""
-    initialize_firebase()
+    if not testing:
+        initialize_firebase()
 
 
     #Register blueprints (health check, firestore test) later - authentication
