@@ -322,3 +322,210 @@ def test_post_me_empty_username_uses_default(client, mock_valid_token, fake_db):
         "streak": 0,
         "username": "temp_username"
     })
+
+
+#TESTS FOR PATCH:
+
+
+def test_patch_me_updates_username(
+    client,
+    mock_valid_token,
+    fake_db
+):
+    fake_snapshot = MagicMock()
+    fake_snapshot.exists = True
+
+    fake_document = fake_db.collection.return_value.document.return_value
+    fake_document.get.return_value = fake_snapshot
+
+    response = client.patch(
+        "/api/me",
+        headers={
+            "Authorization": "Bearer fake_token"
+        },
+        json={
+            "username": "new_username"
+        }
+    )
+
+    assert response.status_code == 200
+    assert response.get_json() == {
+        "message": "User profile updated"
+    }
+
+    fake_document.update.assert_called_once_with({
+        "username": "new_username"
+    })
+
+
+def test_patch_me_profile_not_found(
+    client,
+    mock_valid_token,
+    fake_db
+):
+    fake_snapshot = MagicMock()
+    fake_snapshot.exists = False
+
+    fake_document = fake_db.collection.return_value.document.return_value
+    fake_document.get.return_value = fake_snapshot
+
+    response = client.patch(
+        "/api/me",
+        headers={
+            "Authorization": "Bearer fake_token"
+        },
+        json={
+            "username": "new_username"
+        }
+    )
+
+    assert response.status_code == 404
+    assert response.get_json() == {
+        "error": "User profile not found"
+    }
+
+    fake_document.update.assert_not_called()
+
+
+def test_patch_me_empty_username_returns_400(
+    client,
+    mock_valid_token,
+    fake_db
+):
+    response = client.patch(
+        "/api/me",
+        headers={
+            "Authorization": "Bearer fake_token"
+        },
+        json={
+            "username": ""
+        }
+    )
+
+    assert response.status_code == 400
+    assert response.get_json() == {
+        "error": "Username is required"
+    }
+
+    fake_db.collection.assert_not_called()
+
+
+def test_patch_me_missing_body_returns_400(
+    client,
+    mock_valid_token,
+    fake_db
+):
+    response = client.patch(
+        "/api/me",
+        headers={
+            "Authorization": "Bearer fake_token"
+        },
+        json={}
+    )
+
+    assert response.status_code == 400
+    assert response.get_json() == {
+        "error": "No data provided"
+    }
+
+    fake_db.collection.assert_not_called()
+
+
+def test_patch_me_without_token_returns_401(
+    client
+):
+    response = client.patch(
+        "/api/me",
+        json={
+            "username": "new_username"
+        }
+    )
+
+    assert response.status_code == 401
+
+
+def test_patch_me_invalid_token_returns_401(
+    client,
+    monkeypatch
+):
+    def fake_invalid_token(token):
+        raise Exception("Invalid token")
+
+    monkeypatch.setattr(
+        "app.auth.decorators.auth.verify_id_token",
+        fake_invalid_token
+    )
+
+    response = client.patch(
+        "/api/me",
+        headers={
+            "Authorization": "Bearer bad_token"
+        },
+        json={
+            "username": "new_username"
+        }
+    )
+
+    assert response.status_code == 401
+    assert response.get_json()["error"] == "Invalid token"
+
+
+def test_patch_me_uses_authenticated_user_uid(
+    client,
+    mock_valid_token,
+    fake_db
+):
+    expected_uid = mock_valid_token
+
+    fake_snapshot = MagicMock()
+    fake_snapshot.exists = True
+
+    fake_document = fake_db.collection.return_value.document.return_value
+    fake_document.get.return_value = fake_snapshot
+
+    response = client.patch(
+        "/api/me",
+        headers={
+            "Authorization": "Bearer fake_token"
+        },
+        json={
+            "username": "new_username"
+        }
+    )
+
+    assert response.status_code == 200
+
+    fake_db.collection.assert_called_once_with("users")
+
+    fake_db.collection.return_value.document.assert_called_once_with(
+        expected_uid
+    )
+
+
+def test_patch_me_ignores_protected_fields(
+    client,
+    mock_valid_token,
+    fake_db
+):
+    fake_snapshot = MagicMock()
+    fake_snapshot.exists = True
+
+    fake_document = fake_db.collection.return_value.document.return_value
+    fake_document.get.return_value = fake_snapshot
+
+    response = client.patch(
+        "/api/me",
+        headers={
+            "Authorization": "Bearer fake_token"
+        },
+        json={
+            "username": "new_username",
+            "streak": 999999
+        }
+    )
+
+    assert response.status_code == 200
+
+    fake_document.update.assert_called_once_with({
+        "username": "new_username"
+    })

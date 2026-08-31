@@ -57,3 +57,13 @@ def fake_db(monkeypatch):
     )
 
     return db
+
+#To pass the real client to integration tests:
+@pytest.fixture
+def integration_app():
+    return create_app(testing=False)
+
+
+@pytest.fixture
+def integration_client(integration_app):
+    return integration_app.test_client()

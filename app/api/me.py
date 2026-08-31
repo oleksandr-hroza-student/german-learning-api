@@ -78,3 +78,46 @@ def get_me():
         }), 404
 
     return jsonify(user_doc.to_dict()), 200
+
+@me_bp.route("/me", methods = ["PATCH"])
+@auth_required
+def update_me():
+
+    data = request.get_json()
+
+    if not data:
+        return jsonify({
+            "error": "No data provided"
+        }), 400
+
+    username = data.get("username", "").strip()
+
+    if not username:
+        return jsonify({
+            "error": "Username is required"
+        }), 400
+
+    user_id = g.uid
+    user_ref = get_db().collection("users").document(user_id)
+    user_doc = user_ref.get()
+
+    if not user_doc.exists:
+        print("User profile not found")
+        return jsonify({
+            "error": "User profile not found"
+        }), 404
+        #use update instead of set where appropriate
+        #if using set, it might replace the full document (we will lose streak)
+    user_ref.update({
+        "username": username
+    })
+
+    return jsonify({
+        "message": "User profile updated"
+    }), 200
+
+
+
+
+
+

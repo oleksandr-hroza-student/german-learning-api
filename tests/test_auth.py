@@ -51,11 +51,11 @@ def get_token(email, password, api_key):
     return response.json()["idToken"]
 
 @pytest.mark.integration
-def test_auth_required_real_token(client, user_credentials_for_test):
+def test_auth_required_real_token(integration_client, user_credentials_for_test):
     creds = user_credentials_for_test
 
     token = get_token(creds["email"], creds["password"], creds["api_key"])
-    response = client.get(
+    response = integration_client.get(
         "/api/protected",
         headers={"Authorization": f"Bearer {token}"}
     )

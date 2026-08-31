@@ -3,8 +3,8 @@ import pytest
 from app import create_app
 
 @pytest.mark.integration
-def test_health_firestore(client):
-    response = client.get("api/health_firestore")
+def test_health_firestore(integration_client):
+    response = integration_client.get("/api/health_firestore")
     data = response.get_json()
     assert data.get("success") == True
     assert response.status_code == 200
