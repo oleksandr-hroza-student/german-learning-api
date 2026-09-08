@@ -19,6 +19,8 @@ def lookup_noun(noun):
     cursor.execute("SELECT word, gender FROM entries WHERE word = ? COLLATE NOCASE", (noun,))
     rows = cursor.fetchall()
     connection.close()
+
+
     return rows
 
 

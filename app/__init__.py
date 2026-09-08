@@ -14,6 +14,7 @@ from app.api.health_flask import health_bp
 from app.api.health_firestore import health_firestore_bp
 from app.api.protected import protected_bp
 from app.api.me import me_bp
+from app.api.nouns import nouns_bp
 
 
 
@@ -65,5 +66,6 @@ def create_app(testing = False):
     app.register_blueprint(health_firestore_bp, url_prefix="/api")
     app.register_blueprint(protected_bp, url_prefix="/api")
     app.register_blueprint(me_bp, url_prefix="/api")
+    app.register_blueprint(nouns_bp, url_prefix="/api")
 
     return app
