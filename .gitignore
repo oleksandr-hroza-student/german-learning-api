@@ -3,3 +3,5 @@
 .env
 firebase-service-account.json
 .env.test
+
+app/data/german_nouns_only.db
