@@ -52,5 +52,4 @@ def process_noun(noun):
     return result
 
 #print(process_noun("Hund"))
-print(process_multiple_nouns("HunD und Katze"))
 
