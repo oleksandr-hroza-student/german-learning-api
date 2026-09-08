@@ -18,8 +18,6 @@ from app.api.nouns import nouns_bp
 
 
 
-
-
 def create_app(testing = False):
     #Configure logger once and for everything.
     logging.basicConfig(

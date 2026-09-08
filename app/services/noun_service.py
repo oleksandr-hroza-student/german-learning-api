@@ -51,5 +51,11 @@ def process_noun(noun):
         }
     return result
 
+"""
+
+I forgot to remove this statement before pushing to git hub,
+so the CI tests would fail, as it calls the function with the real db instead of the mocked one
+
 #print(process_noun("Hund"))
+"""
 
