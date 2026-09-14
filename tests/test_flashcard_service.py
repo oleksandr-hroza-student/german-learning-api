@@ -1,4 +1,4 @@
-from app.services.flashcard_service import create_flashcards_from_text
+from app.services.flashcard_service import create_flashcards_from_text, get_flashcards_for_user, delete_flashcard_for_user
 
 #Succesfully create flash cards from valid noun results
 def test_create_flashcards_from_text_creates_valid_cards(monkeypatch):
@@ -196,4 +196,73 @@ def test_create_flashcards_from_text_passes_correct_data_to_repository(
         "user_id": "test_user_123",
         "word": "Hund",
         "gender": "m"
+    }
+
+def test_get_flashcards_for_user_passes_user_id_to_repository(
+    monkeypatch
+):
+    received = {}
+
+    def fake_get_all_flashcards(user_id):
+        received["user_id"] = user_id
+
+        return [
+            {
+                "word": "Hund",
+                "gender": "m"
+            }
+        ]
+
+    monkeypatch.setattr(
+        "app.services.flashcard_service.get_all_flashcards",
+        fake_get_all_flashcards
+    )
+
+    result = get_flashcards_for_user(
+        "test_user_123"
+    )
+
+    assert received == {
+        "user_id": "test_user_123"
+    }
+
+    assert result == [
+        {
+            "word": "Hund",
+            "gender": "m"
+        }
+    ]
+
+def test_delete_flashcard_for_user_passes_correct_data(
+    monkeypatch
+):
+    received = {}
+
+    def fake_delete_flashcard(user_id, card_id):
+        received["user_id"] = user_id
+        received["card_id"] = card_id
+
+        return {
+            "status": "deleted",
+            "card_id": card_id
+        }
+
+    monkeypatch.setattr(
+        "app.services.flashcard_service.delete_flashcard",
+        fake_delete_flashcard
+    )
+
+    result = delete_flashcard_for_user(
+        "test_user_123",
+        "Hund"
+    )
+
+    assert received == {
+        "user_id": "test_user_123",
+        "card_id": "Hund"
+    }
+
+    assert result == {
+        "status": "deleted",
+        "card_id": "Hund"
     }

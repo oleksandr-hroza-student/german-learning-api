@@ -150,3 +150,227 @@ def test_create_flashcards_route_passes_correct_data_to_service(
         "user_id": mock_valid_token,
         "text": "Hund Katze"
     }
+
+def test_get_flashcards_route_success(
+    client,
+    mock_valid_token,
+    monkeypatch
+):
+    def fake_get_flashcards_for_user(user_id):
+        return [
+            {
+                "word": "Hund",
+                "gender": "m"
+            },
+            {
+                "word": "Katze",
+                "gender": "f"
+            }
+        ]
+
+    monkeypatch.setattr(
+        "app.api.flashcards.get_flashcards_for_user",
+        fake_get_flashcards_for_user
+    )
+
+    response = client.get(
+        "/api/flashcards",
+        headers={
+            "Authorization": "Bearer fake_token"
+        }
+    )
+
+    assert response.status_code == 200
+
+    assert response.get_json() == {
+        "flashcards": [
+            {
+                "word": "Hund",
+                "gender": "m"
+            },
+            {
+                "word": "Katze",
+                "gender": "f"
+            }
+        ]
+    }
+
+def test_get_flashcards_route_success(
+    client,
+    mock_valid_token,
+    monkeypatch
+):
+    def fake_get_flashcards_for_user(user_id):
+        return [
+            {
+                "word": "Hund",
+                "gender": "m"
+            },
+            {
+                "word": "Katze",
+                "gender": "f"
+            }
+        ]
+
+    monkeypatch.setattr(
+        "app.api.flashcards.get_flashcards_for_user",
+        fake_get_flashcards_for_user
+    )
+
+    response = client.get(
+        "/api/flashcards",
+        headers={
+            "Authorization": "Bearer fake_token"
+        }
+    )
+
+    assert response.status_code == 200
+
+    assert response.get_json() == {
+        "flashcards": [
+            {
+                "word": "Hund",
+                "gender": "m"
+            },
+            {
+                "word": "Katze",
+                "gender": "f"
+            }
+        ]
+    }
+
+def test_get_flashcards_route_passes_correct_user_id(
+    client,
+    mock_valid_token,
+    monkeypatch
+):
+    received = {}
+
+    def fake_get_flashcards_for_user(user_id):
+        received["user_id"] = user_id
+        return []
+
+    monkeypatch.setattr(
+        "app.api.flashcards.get_flashcards_for_user",
+        fake_get_flashcards_for_user
+    )
+
+    response = client.get(
+        "/api/flashcards",
+        headers={
+            "Authorization": "Bearer fake_token"
+        }
+    )
+
+    assert response.status_code == 200
+
+    assert received == {
+        "user_id": mock_valid_token
+    }
+
+
+def test_delete_flashcard_route_success(
+    client,
+    mock_valid_token,
+    monkeypatch
+):
+    def fake_delete_flashcard_for_user(user_id, card_id):
+        return {
+            "status": "deleted",
+            "card_id": card_id
+        }
+
+    monkeypatch.setattr(
+        "app.api.flashcards.delete_flashcard_for_user",
+        fake_delete_flashcard_for_user
+    )
+
+    response = client.delete(
+        "/api/flashcards/hund",
+        headers={
+            "Authorization": "Bearer fake_token"
+        }
+    )
+
+    assert response.status_code == 200
+
+    assert response.get_json() == {
+        "status": "deleted",
+        "card_id": "hund"
+    }
+
+def test_delete_flashcard_route_not_found(
+    client,
+    mock_valid_token,
+    monkeypatch
+):
+    def fake_delete_flashcard_for_user(user_id, card_id):
+        return {
+            "status": "not_found",
+            "card_id": card_id
+        }
+
+    monkeypatch.setattr(
+        "app.api.flashcards.delete_flashcard_for_user",
+        fake_delete_flashcard_for_user
+    )
+
+    response = client.delete(
+        "/api/flashcards/hund",
+        headers={
+            "Authorization": "Bearer fake_token"
+        }
+    )
+
+    assert response.status_code == 404
+
+    assert response.get_json() == {
+        "status": "not_found",
+        "card_id": "hund"
+    }
+
+def test_delete_flashcard_route_missing_token(client):
+    response = client.delete(
+        "/api/flashcards/hund"
+    )
+
+    assert response.status_code == 401
+
+def test_delete_flashcard_route_passes_correct_data(
+    client,
+    mock_valid_token,
+    monkeypatch
+):
+    received = {}
+
+    def fake_delete_flashcard_for_user(user_id, card_id):
+        received["user_id"] = user_id
+        received["card_id"] = card_id
+
+        return {
+            "status": "deleted",
+            "card_id": card_id
+        }
+
+    monkeypatch.setattr(
+        "app.api.flashcards.delete_flashcard_for_user",
+        fake_delete_flashcard_for_user
+    )
+
+    response = client.delete(
+        "/api/flashcards/Hund",
+        headers={
+            "Authorization": "Bearer fake_token"
+        }
+    )
+
+    assert response.status_code == 200
+
+    assert received == {
+        "user_id": mock_valid_token,
+        "card_id": "Hund"
+    }
+
+
+
+
