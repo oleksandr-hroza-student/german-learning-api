@@ -32,7 +32,10 @@ def test_create_flashcard_creates_new_card(monkeypatch):
 
     fake_card_ref.set.assert_called_once_with({
         "word": "Hund",
-        "gender": "m"
+        "gender": "m",
+        "correct_count": 0,
+        "incorrect_count": 0,
+        "last_reviewed": None
     })
 
     assert result == {

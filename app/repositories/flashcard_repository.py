@@ -26,8 +26,11 @@ def create_flashcard(user_id, word, gender):
 
     #if this fails, an exception will be visible.
     card_ref.set({
-        "word" : word,
-        "gender" : gender
+        "word": word,
+        "gender": gender,
+        "correct_count": 0,
+        "incorrect_count": 0,
+        "last_reviewed": None
     })
 
 
@@ -85,3 +88,30 @@ def delete_flashcard(user_id, card_id):
         "status": "deleted",
         "card_id": card_id
     }
+
+
+def update_flashcard_review(user_id, card_id, data):
+    db = get_db()
+
+    card_ref = (
+        db.collection("users")
+        .document(user_id)
+        .collection("flashcards")
+        .document(card_id.casefold())
+    )
+
+    card_doc = card_ref.get()
+
+    if not card_doc.exists:
+        return {
+            "status": "not_found",
+            "card_id": card_id
+        }
+
+    card_ref = card_ref.update({
+        ""
+    })
+
+
+
+
