@@ -1,5 +1,5 @@
 from unittest.mock import MagicMock
-
+from firebase_admin import firestore
 from app.repositories.flashcard_repository import create_flashcard, get_all_flashcards, delete_flashcard
 
 
@@ -33,10 +33,13 @@ def test_create_flashcard_creates_new_card(monkeypatch):
     fake_card_ref.set.assert_called_once_with({
         "word": "Hund",
         "gender": "m",
-        "correct_count": 0,
-        "incorrect_count": 0,
-        "last_reviewed": None
+        "interval_days": 0,
+        "next_review_at": firestore.SERVER_TIMESTAMP,
+        "last_reviewed_at": None,
+        "review_count": 0
     })
+    """
+    """
 
     assert result == {
         "status": "created",

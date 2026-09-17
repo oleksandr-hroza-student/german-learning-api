@@ -4,6 +4,7 @@ This file:
 """
 
 from app.config.firebase import get_db
+from firebase_admin import firestore
 
 def create_flashcard(user_id, word, gender):
     db = get_db()
@@ -28,9 +29,10 @@ def create_flashcard(user_id, word, gender):
     card_ref.set({
         "word": word,
         "gender": gender,
-        "correct_count": 0,
-        "incorrect_count": 0,
-        "last_reviewed": None
+        "interval_days": 0,
+        "next_review_at": firestore.SERVER_TIMESTAMP,
+        "last_reviewed_at": None,
+        "review_count": 0
     })
 
 
@@ -90,7 +92,7 @@ def delete_flashcard(user_id, card_id):
     }
 
 
-def update_flashcard_review(user_id, card_id, data):
+def update_flashcard_review(user_id, card_id, interval_days, next_review_at):
     db = get_db()
 
     card_ref = (
@@ -108,10 +110,36 @@ def update_flashcard_review(user_id, card_id, data):
             "card_id": card_id
         }
 
-    card_ref = card_ref.update({
-        ""
+    card_ref.update({
+        "interval_days": interval_days,
+        "next_review_at": next_review_at,
+        "last_reviewed_at": firestore.SERVER_TIMESTAMP,
+        "review_count": firestore.Increment(1)
     })
 
+    return {
+        "status": "updated",
+        "card_id": card_id,
+        "interval_days": interval_days,
+        "next_review_at": next_review_at
+    }
+
+def get_flashcard(user_id, card_id):
+    db = get_db()
+
+    card_ref = (
+        db.collection("users")
+        .document(user_id)
+        .collection("flashcards")
+        .document(card_id.casefold())
+    )
+
+    card_doc = card_ref.get()
+
+    if not card_doc.exists:
+        return None
+
+    return card_doc.to_dict()
 
 
 
