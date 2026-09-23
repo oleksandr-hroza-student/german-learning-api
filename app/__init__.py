@@ -16,6 +16,7 @@ from app.api.protected import protected_bp
 from app.api.me import me_bp
 from app.api.nouns import nouns_bp
 from app.api.flashcards import flashcards_bp
+from app.api.reviews import reviews_bp
 
 
 def create_app(testing = False):
@@ -66,5 +67,5 @@ def create_app(testing = False):
     app.register_blueprint(me_bp, url_prefix="/api")
     app.register_blueprint(nouns_bp, url_prefix="/api")
     app.register_blueprint(flashcards_bp, url_prefix="/api")
-
+    app.register_blueprint(reviews_bp, url_prefix="/api")
     return app

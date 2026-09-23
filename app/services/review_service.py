@@ -7,7 +7,7 @@ from app.repositories.flashcard_repository import (
 )
 
 
-def review_flashcard(user_id, card_id, decision, timezone_name):
+def review_flashcard(user_id, card_id, decision, timezone_name, reset_interval = False):
 
     card = get_flashcard(user_id, card_id)
 
@@ -17,8 +17,19 @@ def review_flashcard(user_id, card_id, decision, timezone_name):
             "card_id": card_id
         }
 
+    next_review_at = card.get("next_review_at")
+
+    if next_review_at is not None and next_review_at > datetime.now(timezone.utc):
+        return {
+            "status": "not_due",
+            "card_id": card_id
+        }
+
     #0 acts as a default value in case the card doesn't have an interval_days field yet
     current_interval = card.get("interval_days", 0)
+
+    if reset_interval:
+        current_interval = 0
 
     review_result = process_review(
         current_interval,
@@ -33,4 +44,18 @@ def review_flashcard(user_id, card_id, decision, timezone_name):
         review_result["next_review_at"]
     )
 
+def process_review_session(user_id, reviews, timezone_name):
+    results = []
 
+    for review in reviews:
+        result = review_flashcard(
+            user_id,
+            review["card_id"],
+            review["decision"],
+            timezone_name,
+            reset_interval=review.get("again_count", 0) > 0
+        )
+
+        results.append(result)
+
+    return results
