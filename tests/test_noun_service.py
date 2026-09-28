@@ -18,7 +18,7 @@ def test_process_noun_found(monkeypatch):
     assert result == {
         "status": "found",
         "word": "Hund",
-        "gender": "m"
+        "genders": ["m"]
     }
 
 #We get 2 duplicates from the same route with the same gender
@@ -39,7 +39,7 @@ def test_process_noun_duplicate_same_gender(monkeypatch):
     assert result == {
         "status": "found",
         "word": "Hund",
-        "gender": "m"
+        "genders": ["m"]
     }
 
 #The word returns multiple genders

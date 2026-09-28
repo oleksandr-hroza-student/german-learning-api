@@ -7,20 +7,20 @@ def test_create_flashcards_from_text_creates_valid_cards(monkeypatch):
             {
                 "status": "found",
                 "word": "Hund",
-                "gender": "m"
+                "genders": ["m"]
             },
             {
                 "status": "found",
                 "word": "Katze",
-                "gender": "f"
+                "genders": ["f"]
             }
         ]
 
-    def fake_create_flashcard(user_id, word, gender):
+    def fake_create_flashcard(user_id, word, genders):
         return {
             "status": "created",
             "word": word,
-            "gender": gender
+            "genders": genders
         }
 
     monkeypatch.setattr(
@@ -42,17 +42,16 @@ def test_create_flashcards_from_text_creates_valid_cards(monkeypatch):
         {
             "status": "created",
             "word": "Hund",
-            "gender": "m"
+            "genders": ["m"]
         },
         {
             "status": "created",
             "word": "Katze",
-            "gender": "f"
+            "genders": ["f"]
         }
     ]
 
     assert skipped == []
-
 #In case process_multiple_nouns returns not_found/ambiguous/gender missing
 def test_create_flashcards_from_text_skips_invalid_nouns(monkeypatch):
     def fake_process_multiple_nouns(text):
@@ -62,17 +61,12 @@ def test_create_flashcards_from_text_skips_invalid_nouns(monkeypatch):
                 "word": "Blorpo"
             },
             {
-                "status": "ambiguous",
-                "word": "Band",
-                "genders": ["m", "n"]
-            },
-            {
                 "status": "gender_missing",
                 "word": "Testwort"
             }
         ]
 
-    def fake_create_flashcard(user_id, word, gender):
+    def fake_create_flashcard(user_id, word, genders):
         raise AssertionError(
             "create_flashcard should not be called for invalid nouns"
         )
@@ -89,7 +83,7 @@ def test_create_flashcards_from_text_skips_invalid_nouns(monkeypatch):
 
     created, skipped = create_flashcards_from_text(
         "test_user_123",
-        "Blorpo Band Testwort"
+        "Blorpo Testwort"
     )
 
     assert created == []
@@ -100,28 +94,25 @@ def test_create_flashcards_from_text_skips_invalid_nouns(monkeypatch):
             "word": "Blorpo"
         },
         {
-            "status": "ambiguous",
-            "word": "Band",
-            "genders": ["m", "n"]
-        },
-        {
             "status": "gender_missing",
             "word": "Testwort"
         }
     ]
 
 #In case the flash cards already exists, create_flashcard returns "already_exists"
+# In case the flashcard already exists,
+# create_flashcard returns "already_exists"
 def test_create_flashcards_from_text_skips_existing_card(monkeypatch):
     def fake_process_multiple_nouns(text):
         return [
             {
                 "status": "found",
                 "word": "Hund",
-                "gender": "m"
+                "genders": ["m"]
             }
         ]
 
-    def fake_create_flashcard(user_id, word, gender):
+    def fake_create_flashcard(user_id, word, genders):
         return {
             "status": "already_exists",
             "word": word
@@ -150,8 +141,50 @@ def test_create_flashcards_from_text_skips_existing_card(monkeypatch):
             "word": "Hund"
         }
     ]
+def test_create_flashcards_from_text_creates_ambiguous_card(monkeypatch):
+    def fake_process_multiple_nouns(text):
+        return [
+            {
+                "status": "ambiguous",
+                "word": "Band",
+                "genders": ["m", "n"]
+            }
+        ]
 
-#Here we prove that the service has passed the correct information downstream
+    def fake_create_flashcard(user_id, word, genders):
+        return {
+            "status": "created",
+            "word": word,
+            "genders": genders
+        }
+
+    monkeypatch.setattr(
+        "app.services.flashcard_service.process_multiple_nouns",
+        fake_process_multiple_nouns
+    )
+
+    monkeypatch.setattr(
+        "app.services.flashcard_service.create_flashcard",
+        fake_create_flashcard
+    )
+
+    created, skipped = create_flashcards_from_text(
+        "test_user_123",
+        "Band"
+    )
+
+    assert created == [
+        {
+            "status": "created",
+            "word": "Band",
+            "genders": ["m", "n"]
+        }
+    ]
+
+    assert skipped == []
+
+# Here we prove that the service passes
+# the correct information downstream
 def test_create_flashcards_from_text_passes_correct_data_to_repository(
     monkeypatch
 ):
@@ -162,19 +195,19 @@ def test_create_flashcards_from_text_passes_correct_data_to_repository(
             {
                 "status": "found",
                 "word": "Hund",
-                "gender": "m"
+                "genders": ["m"]
             }
         ]
 
-    def fake_create_flashcard(user_id, word, gender):
+    def fake_create_flashcard(user_id, word, genders):
         received["user_id"] = user_id
         received["word"] = word
-        received["gender"] = gender
+        received["genders"] = genders
 
         return {
             "status": "created",
             "word": word,
-            "gender": gender
+            "genders": genders
         }
 
     monkeypatch.setattr(
@@ -195,9 +228,8 @@ def test_create_flashcards_from_text_passes_correct_data_to_repository(
     assert received == {
         "user_id": "test_user_123",
         "word": "Hund",
-        "gender": "m"
+        "genders": ["m"]
     }
-
 def test_get_flashcards_for_user_passes_user_id_to_repository(
     monkeypatch
 ):

@@ -40,7 +40,7 @@ def process_noun(noun):
         result = {
             "status" : "found",
             "word" : lookup_result[0][0],
-            "gender" : genders[0]
+            "genders" : [genders[0]]
         }
     else:
         #print("Ambiguous result found, multiple genders found")

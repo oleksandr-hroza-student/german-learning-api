@@ -47,7 +47,7 @@ def test_create_flashcard_creates_new_card(monkeypatch):
     assert result == {
         "status": "created",
         "word": "Hund",
-        "gender": "m"
+        "genders": "m"
     }
 
 

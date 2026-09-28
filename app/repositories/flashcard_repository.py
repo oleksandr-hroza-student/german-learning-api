@@ -6,7 +6,7 @@ This file:
 from app.config.firebase import get_db
 from firebase_admin import firestore
 
-def create_flashcard(user_id, word, gender):
+def create_flashcard(user_id, word, genders):
     db = get_db()
 
     card_id = word.casefold()
@@ -28,7 +28,7 @@ def create_flashcard(user_id, word, gender):
     #if this fails, an exception will be visible.
     card_ref.set({
         "word": word,
-        "gender": gender,
+        "gender": genders,
         "interval_days": 0,
         "next_review_at": firestore.SERVER_TIMESTAMP,
         "last_reviewed_at": None,
@@ -39,7 +39,7 @@ def create_flashcard(user_id, word, gender):
     return {
         "status" : "created",
         "word" : word,
-        "gender" : gender
+        "genders" : genders
     }
 
 def get_all_flashcards(user_id):

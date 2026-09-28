@@ -20,26 +20,30 @@ from app.repositories.flashcard_repository import get_all_flashcards, delete_fla
 
 def create_flashcards_from_text(user_id, text):
     noun_results = process_multiple_nouns(text)
-    #print(noun_results)
 
     created = []
     skipped = []
 
     for result in noun_results:
-        if result["status"] == "not_found":
+
+        if result["status"] in ["not_found", "gender_missing"]:
+            # AI fallback will handle these later
             skipped.append(result)
-        elif result["status"] == "ambiguous":
-            skipped.append(result)
-             #Implement AI fallback later
-        elif result["status"] == "gender_missing":
-            skipped.append(result)
-            #Implement AI fallback later
-        elif result["status"] == "found":
-            created_response = create_flashcard(user_id, result["word"], result["gender"])
+
+        elif result["status"] in ["found", "ambiguous"]:
+            created_response = create_flashcard(
+                user_id,
+                result["word"],
+                result["genders"]
+            )
+
             if created_response["status"] == "created":
                 created.append(created_response)
+
             elif created_response["status"] == "already_exists":
                 skipped.append(created_response)
+
+    return created, skipped
 
 
 
