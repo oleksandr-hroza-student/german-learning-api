@@ -3,7 +3,7 @@ import os
 from dotenv import load_dotenv
 from pathlib import Path
 
-project_root = Path(__file__).resolve().parents[1]
+project_root = Path(__file__).resolve().parents[2]
 env_path = project_root / ".env.test"
 
 load_dotenv(env_path)
@@ -24,7 +24,7 @@ url = (
 payload = {
     "email": email,
     "password": password,
-    "returnSecureToken": True
+    "returnSecureToken": True,
 }
 
 response = requests.post(url, json=payload)
@@ -32,22 +32,17 @@ response.raise_for_status()
 
 token = response.json()["idToken"]
 
-response = requests.get(
-    "http://127.0.0.1:5000/api/flashcards",
+print("Got token")
+
+response = requests.post(
+    "http://127.0.0.1:5000/api/nouns/process",
     headers={
         "Authorization": f"Bearer {token}"
-    }
+    },
+    json={
+            "text": "Hallo KATZE hund Welt"
+        }
 )
 
-print(response.status_code)
-print(response.json())
-
-response = requests.delete(
-    "http://127.0.0.1:5000/api/flashcards/hund",
-    headers={
-        "Authorization": f"Bearer {token}"
-    }
-)
-
-print(response.status_code)
+response.raise_for_status()
 print(response.json())

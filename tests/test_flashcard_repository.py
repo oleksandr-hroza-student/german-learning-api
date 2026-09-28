@@ -1,6 +1,9 @@
 from unittest.mock import MagicMock
 from firebase_admin import firestore
-from app.repositories.flashcard_repository import create_flashcard, get_all_flashcards, delete_flashcard
+from app.repositories.flashcard_repository import create_flashcard, get_all_flashcards, delete_flashcard, get_due_flashcards
+
+from datetime import datetime, timezone
+
 
 
 
@@ -268,3 +271,65 @@ def test_delete_flashcard_uses_correct_path(monkeypatch):
         .collection.return_value.document.assert_called_once_with(
             "hund"
         )
+
+
+
+def test_get_due_flashcards_returns_due_cards(monkeypatch):
+    fake_db = MagicMock()
+
+    #Represents users/{uid}/flashcards
+    fake_cards_ref = (
+        fake_db.collection.return_value
+        .document.return_value
+        .collection.return_value
+    )
+
+    fake_query = MagicMock()
+
+    fake_cards_ref.where.return_value = fake_query
+
+    doc1 = MagicMock()
+    doc1.id = "hund"
+    doc1.to_dict.return_value = {
+        "word": "Hund",
+        "gender": "m",
+    }
+
+    doc2 = MagicMock()
+    doc2.id = "katze"
+    doc2.to_dict.return_value = {
+        "word": "Katze",
+        "gender": "f"
+    }
+
+    fake_query.stream.return_value = [doc1, doc2]
+
+    monkeypatch.setattr(
+        "app.repositories.flashcard_repository.get_db",
+        lambda: fake_db
+    )
+
+    now = datetime(
+        2026, 9, 25,
+        12, 0,
+        tzinfo=timezone.utc
+    )
+
+    result = get_due_flashcards(
+        "test_user_123",
+        now
+    )
+
+    assert result == [
+        {
+            "word": "Hund",
+            "gender": "m",
+            "card_id": "hund"
+        },
+        {
+            "word": "Katze",
+            "gender": "f",
+            "card_id": "katze"
+        }
+    ]
+

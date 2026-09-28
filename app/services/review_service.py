@@ -3,7 +3,8 @@ from datetime import datetime, timezone
 from app.services.review_scheduler import process_review
 from app.repositories.flashcard_repository import (
     get_flashcard,
-    update_flashcard_review
+    update_flashcard_review,
+    get_due_flashcards
 )
 
 
@@ -59,3 +60,6 @@ def process_review_session(user_id, reviews, timezone_name):
         results.append(result)
 
     return results
+
+def get_due_cards_for_user(user_id, now):
+    return get_due_flashcards(user_id, now)

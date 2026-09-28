@@ -1,7 +1,9 @@
 from flask import Blueprint, request, jsonify, g
 
+from datetime import datetime, timezone
+
 from app.auth.decorators import auth_required
-from app.services.review_service import process_review_session
+from app.services.review_service import process_review_session, get_due_cards_for_user
 
 reviews_bp = Blueprint("reviews", __name__)
 
@@ -99,4 +101,20 @@ def submit_review_session():
 
     return jsonify({
         "results": results
+    }), 200
+
+
+@reviews_bp.route("/reviews/due", methods=["GET"])
+@auth_required
+
+def get_due_cards():
+    now = datetime.now(timezone.utc)
+
+    cards = get_due_cards_for_user(
+        g.uid,
+        now
+    )
+
+    return jsonify({
+        "cards": cards
     }), 200

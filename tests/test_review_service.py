@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 
-from app.services.review_service import review_flashcard, process_review_session
+from app.services.review_service import review_flashcard, process_review_session, get_due_cards_for_user
 
 def test_process_review_session_can_return_mixed_results(monkeypatch):
     def fake_review_flashcard(
@@ -662,4 +662,28 @@ def test_review_flashcard_allows_due_card(monkeypatch):
         "status": "updated",
         "card_id": "Hund"
     }
+
+    def test_get_due_cards_for_user(monkeypatch):
+        expected_cards = [
+            {
+                "card_id": "hund",
+                "word": "Hund",
+                "gender": "m"
+            }
+        ]
+
+        def fake_get_due_flashcards(user_id, now):
+            return expected_cards
+
+        monkeypatch.setattr(
+            "app.services.review_service.get_due_flashcards",
+            fake_get_due_flashcards
+        )
+
+        result = get_due_cards_for_user(
+            "test_user_123",
+            "fake_now"
+        )
+
+        assert result == expected_cards
 

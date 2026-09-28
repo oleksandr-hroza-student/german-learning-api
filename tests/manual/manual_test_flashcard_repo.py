@@ -8,7 +8,7 @@ from app.repositories.flashcard_repository import create_flashcard
 
 
 def main():
-    project_root = Path(__file__).resolve().parents[1]
+    project_root = Path(__file__).resolve().parents[2]
 
     load_dotenv(project_root / ".env")
     load_dotenv(project_root / ".env.test")

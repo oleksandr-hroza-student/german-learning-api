@@ -3,7 +3,7 @@ import os
 from dotenv import load_dotenv
 from pathlib import Path
 
-project_root = Path(__file__).resolve().parents[1]
+project_root = Path(__file__).resolve().parents[2]
 env_path = project_root / ".env.test"
 
 load_dotenv(env_path)
@@ -32,30 +32,35 @@ response.raise_for_status()
 
 token = response.json()["idToken"]
 
+print("Got token")
+
 response = requests.post(
-    "http://127.0.0.1:5000/api/review/session",
+    "http://127.0.0.1:5000/api/me",
     headers={
         "Authorization": f"Bearer {token}"
     },
     json={
-      "timezone": "Europe/Dublin",
-      "review_results": [
-        {
-          "card_id": "Hund",
-          "decision": "OK",
-          "again_count": 0
-        },
-        {
-          "card_id": "Katze",
-          "decision": "EASY",
-          "again_count": 1
-        },
-        {
-          "card_id": "Band",
-          "decision": "OK",
-          "again_count": 2
+            "username": "The goat"
         }
-      ]
+)
+
+response = requests.patch(
+    "http://127.0.0.1:5000/api/me",
+    headers={
+        "Authorization": f"Bearer {token}"
+    },
+    json={
+        "username": "updated_username"
+    }
+)
+
+print(response.status_code)
+print(response.json())
+
+response = requests.get(
+    "http://127.0.0.1:5000/api/me",
+    headers={
+        "Authorization": f"Bearer {token}"
     }
 )
 

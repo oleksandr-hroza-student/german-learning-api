@@ -346,3 +346,73 @@ def test_submit_review_session_passes_correct_data_to_service(
         "timezone_name": "Europe/Dublin"
     }
 
+
+def test_get_due_cards_uses_authenticated_user(
+    client,
+    mock_valid_token,
+    monkeypatch
+):
+    received = {}
+
+    def fake_get_due_cards_for_user(user_id, now):
+        received["user_id"] = user_id
+        return []
+
+    monkeypatch.setattr(
+        "app.api.reviews.get_due_cards_for_user",
+        fake_get_due_cards_for_user
+    )
+
+    response = client.get(
+        "/api/reviews/due",
+        headers={
+            "Authorization": "Bearer fake_token"
+        }
+    )
+
+    assert response.status_code == 200
+    assert received["user_id"] == mock_valid_token
+
+
+def test_get_due_cards_success(
+    client,
+    mock_valid_token,
+    monkeypatch
+):
+    def fake_get_due_cards_for_user(user_id, now):
+        return [
+            {
+                "card_id": "hund",
+                "word": "Hund",
+                "gender": "m"
+            }
+        ]
+
+    monkeypatch.setattr(
+        "app.api.reviews.get_due_cards_for_user",
+        fake_get_due_cards_for_user
+    )
+
+    response = client.get(
+        "/api/reviews/due",
+        headers={
+            "Authorization": "Bearer fake_token"
+        }
+    )
+
+    assert response.status_code == 200
+
+    assert response.get_json() == {
+        "cards": [
+            {
+                "card_id": "hund",
+                "word": "Hund",
+                "gender": "m"
+            }
+        ]
+    }
+
+def test_get_due_cards_requires_auth(client):
+    response = client.get("/api/reviews/due")
+
+    assert response.status_code == 401

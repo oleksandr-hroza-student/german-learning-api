@@ -142,4 +142,41 @@ def get_flashcard(user_id, card_id):
     return card_doc.to_dict()
 
 
+def get_due_flashcards(user_id, now):
+    db = get_db()
+
+    """
+    In this case cards_ref points to the collection, rather than a single element
+    """
+    cards_ref = (
+         db.collection("users")
+         .document(user_id)
+         .collection("flashcards")
+    )
+
+
+    #If the document does not have the "next_review_at", firestore does not include in this query result.
+    query = cards_ref.where(
+    "next_review_at",
+         "<=",
+         now
+    )
+
+    docs = query.stream()
+
+    flashcards = []
+
+    for doc in docs:
+        card = doc.to_dict()
+        card["card_id"] = doc.id
+
+        flashcards.append(card)
+
+    return flashcards
+
+
+
+
+
+
 
