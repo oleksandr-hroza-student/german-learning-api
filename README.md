@@ -14,6 +14,8 @@ The app uses Firebase Authentication for users, Firestore for user data, and a l
 - View and delete flashcards
 - Pytest unit/integration tests
 - GitHub Actions CI
+- AI fallback in case the word does not exist in the local db
+- Review system built on the principals of spaced repetition
 
 ## Architecture
 
@@ -36,11 +38,10 @@ User IDs are taken from verified Firebase tokens rather than request data.
 - SQLite
 - Pytest
 - GitHub Actions
+- OpenAI API
 
 Planned:
 - spaCy
-- OpenAI API
-- Docker
 - Public deployment
 
 ## Why SQLite?
@@ -51,13 +52,18 @@ This keeps the main lookup fast and cheap, while AI can later be used for ambigu
 
 ## API
 
-- `POST /api/me`
-- `GET /api/me`
-- `PATCH /api/me`
-- `POST /api/nouns/process`
-- `POST /api/flashcards`
-- `GET /api/flashcards`
-- `DELETE /api/flashcards/<card_id>`
+- POST /api/me
+- GET /api/me
+- PATCH /api/me
+
+- POST /api/nouns/process
+
+- POST /api/flashcards
+- GET /api/flashcards
+- DELETE /api/flashcards/<card_id>
+
+- GET /api/reviews/due
+- POST /api/reviews/session
 
 ## Testing
 
@@ -75,7 +81,5 @@ GitHub Actions automatically runs the main test suite on pushes and pull request
 Currently under active development.
 
 Next steps:
-- Flashcard review/progress system
 - Natural-text noun extraction with spaCy
-- AI fallback/explanations
 - Docker and deployment

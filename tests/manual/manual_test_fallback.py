@@ -8,7 +8,7 @@ from app.repositories.noun_repository import lookup_noun
 
 def main():
     initialize_firebase()
-    user_id = "sGm1eLS2bNMYU9NxrRqot6a94nC3"
+    user_id = ""
 
     word = "Universitätsbibliothekskaffeemaschinenwartungsvertragsverlängerungsantrag"
 
