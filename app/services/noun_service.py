@@ -1,5 +1,5 @@
 from app.repositories.noun_repository import lookup_noun
-
+from app.services.ai_noun_service import resolve_noun_with_ai
 
 def process_multiple_nouns(text):
     words = text.split()
@@ -22,25 +22,16 @@ def process_noun(noun):
 
     #print(lookup_result)
 
-    if len(lookup_result) == 0:
-        #print("No results found")
-        result = {
-            "status" : "not_found",
-            "word" : noun
-        }
-    elif len(genders) == 0:
-        #print("Missing gender")
-        result = {
-            "status" : "gender_missing",
-            "word" : lookup_result[0][0]
-        }
+    if len(lookup_result) == 0 or len(genders) == 0:
+        #print("No results found") / Missing gender
+        result = resolve_noun_with_ai(noun)
     elif len(genders) == 1:
         #print("Single result found")
 
         result = {
             "status" : "found",
             "word" : lookup_result[0][0],
-            "genders" : [genders[0]]
+            "genders" : genders
         }
     else:
         #print("Ambiguous result found, multiple genders found")

@@ -63,42 +63,6 @@ def test_process_noun_ambiguous(monkeypatch):
         "genders": ["m", "n"]
     }
 
-#No gender is found in the db
-def test_process_noun_gender_missing(monkeypatch):
-    def fake_lookup_noun(noun):
-        return [
-            ("Testwort", None)
-        ]
-
-    monkeypatch.setattr(
-        "app.services.noun_service.lookup_noun",
-        fake_lookup_noun
-    )
-
-    result = process_noun("Testwort")
-
-    assert result == {
-        "status": "gender_missing",
-        "word": "Testwort"
-    }
-
-
-#Noun not in db
-def test_process_noun_not_found(monkeypatch):
-    def fake_lookup_noun(noun):
-        return []
-
-    monkeypatch.setattr(
-        "app.services.noun_service.lookup_noun",
-        fake_lookup_noun
-    )
-
-    result = process_noun("Blorpo")
-
-    assert result == {
-        "status": "not_found",
-        "word": "Blorpo"
-    }
 
 #process multiple nouns
 def test_process_multiple_nouns(monkeypatch):
@@ -137,3 +101,69 @@ def test_process_multiple_nouns(monkeypatch):
             "gender": "f"
         }
     ]
+
+def test_process_noun_uses_ai_fallback_when_not_found(monkeypatch):
+    received = {}
+
+    def fake_lookup_noun(noun):
+        return []
+
+    def fake_resolve_noun_with_ai(noun):
+        received["noun"] = noun
+
+        return {
+            "status": "found",
+            "word": "Blorpo",
+            "genders": ["n"]
+        }
+
+    monkeypatch.setattr(
+        "app.services.noun_service.lookup_noun",
+        fake_lookup_noun
+    )
+
+    monkeypatch.setattr(
+        "app.services.noun_service.resolve_noun_with_ai",
+        fake_resolve_noun_with_ai
+    )
+
+    result = process_noun("Blorpo")
+
+    assert received["noun"] == "Blorpo"
+
+    assert result == {
+        "status": "found",
+        "word": "Blorpo",
+        "genders": ["n"]
+    }
+
+def test_process_noun_uses_ai_fallback_when_gender_missing(monkeypatch):
+    def fake_lookup_noun(noun):
+        return [
+            ("Testwort", None)
+        ]
+
+    def fake_resolve_noun_with_ai(noun):
+        return {
+            "status": "found",
+            "word": "Testwort",
+            "genders": ["n"]
+        }
+
+    monkeypatch.setattr(
+        "app.services.noun_service.lookup_noun",
+        fake_lookup_noun
+    )
+
+    monkeypatch.setattr(
+        "app.services.noun_service.resolve_noun_with_ai",
+        fake_resolve_noun_with_ai
+    )
+
+    result = process_noun("Testwort")
+
+    assert result == {
+        "status": "found",
+        "word": "Testwort",
+        "genders": ["n"]
+    }
